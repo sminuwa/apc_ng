@@ -71,6 +71,7 @@ class PincodesSeeder extends Seeder
                     'state_code' => $prefix,
                     'state_name' => $stateName,
                     'serial' => $i,
+                    'status' => 1,
                     'created_at' => $now,
                     'updated_at' => $now,
                 ];
