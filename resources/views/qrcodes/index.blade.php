@@ -3,9 +3,9 @@
 @section('title', 'Pincode QR downloads')
 
 @section('content')
-    <h1 class="page-title">Pincode QR codes by state</h1>
+    <h1 class="page-title">Pincode QR downloads</h1>
     <p class="page-lead">
-        Use <strong>Download</strong> to get a <strong>ZIP</strong> of separate image files or a printable <strong>PDF</strong> grid. Each QR encodes the pincode text (e.g. <span class="mono">JIG-001</span>).
+        Nigerian states and convention categories. Use <strong>Download</strong> for a <strong>ZIP</strong> of images or a <strong>PDF</strong> grid. Each QR encodes the pincode (e.g. <span class="mono">JIG-001</span> or <span class="mono">VIP-001</span>).
     </p>
 
     <div class="notice">
@@ -23,7 +23,7 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th scope="col">State</th>
+                        <th scope="col">Category</th>
                         <th scope="col" class="col-narrow">Prefix</th>
                         <th scope="col" class="col-narrow">Count</th>
                         <th scope="col" class="col-actions">Download</th>

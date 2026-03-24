@@ -23,5 +23,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call(PincodesSeeder::class);
+        $this->call(ConventionCategoryPincodesSeeder::class);
     }
 }
