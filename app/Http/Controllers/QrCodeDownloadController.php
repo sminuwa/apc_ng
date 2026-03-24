@@ -17,11 +17,25 @@ class QrCodeDownloadController extends Controller
 
     public function index()
     {
+        $stateRank = array_flip(config('pincodes.state_codes_display_order', []));
+        $conventionRank = array_flip(config('pincodes.convention_codes_display_order', []));
+
         $states = Pincode::query()
             ->selectRaw('state_code, state_name, COUNT(*) as pincode_count')
             ->groupBy('state_code', 'state_name')
-            ->orderBy('state_name')
-            ->get();
+            ->get()
+            ->sortBy(function ($row) use ($stateRank, $conventionRank): int {
+                $code = $row->state_code;
+                if (isset($stateRank[$code])) {
+                    return $stateRank[$code];
+                }
+                if (isset($conventionRank[$code])) {
+                    return 1000 + $conventionRank[$code];
+                }
+
+                return 2000;
+            })
+            ->values();
 
         $qrFormat = extension_loaded('imagick') ? 'png' : 'svg';
 
