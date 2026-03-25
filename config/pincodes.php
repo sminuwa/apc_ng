@@ -10,6 +10,6 @@ return [
     ],
 
     'convention_codes_display_order' => [
-        'VVP', 'VIP', 'OBS', 'DOM', 'INE', 'USH', 'MED', 'PRS', 'CAT', 'ESU', 'CLN', 'VNP', 'RPD', 'ENT', 'EMR', 'SCR', 'SEC', 'TEC', 'WMY', 'PWD', 'SPG', 'NCC',
+        'VVP', 'VIP', 'OBS', 'DOM', 'INE', 'USH', 'MED', 'PRS', 'CAT', 'ESU', 'CLN', 'VNP', 'RPD', 'ENT', 'EMR', 'SCR', 'SEC', 'TEC', 'WMY', 'PWD', 'SPG', 'NCC', 'TST',
     ],
 ];

@@ -36,23 +36,25 @@ class ConventionCategoryPincodesSeeder extends Seeder
         ['PWD', 'PWD', 30],
         ['Support Groups', 'SPG', 210],
         ['NCC Officials', 'NCC', 1010],
+        ['Test', 'TST', 100],
     ];
 
     public function run(): void
     {
-        if (DB::table('pincodes')->where('state_code', 'VVP')->exists()) {
-            return;
-        }
-
         $prefixes = array_map(fn (array $row) => $row[1], self::CATEGORIES);
         if (count($prefixes) !== count(array_unique($prefixes))) {
             throw new RuntimeException('Duplicate state_code prefix in ConventionCategoryPincodesSeeder.');
         }
 
         $now = now();
-        $rows = [];
+
         foreach (self::CATEGORIES as [$name, $prefix, $count]) {
+            if (DB::table('pincodes')->where('state_code', $prefix)->exists()) {
+                continue;
+            }
+
             $pad = max(3, strlen((string) $count));
+            $rows = [];
             for ($i = 1; $i <= $count; $i++) {
                 $rows[] = [
                     'code' => sprintf('%s-%0'.$pad.'d', $prefix, $i),
@@ -64,10 +66,10 @@ class ConventionCategoryPincodesSeeder extends Seeder
                     'updated_at' => $now,
                 ];
             }
-        }
 
-        foreach (array_chunk($rows, 500) as $chunk) {
-            DB::table('pincodes')->insert($chunk);
+            foreach (array_chunk($rows, 500) as $chunk) {
+                DB::table('pincodes')->insert($chunk);
+            }
         }
     }
 }
