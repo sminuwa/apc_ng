@@ -9,31 +9,38 @@ use RuntimeException;
 class ConventionCategoryPincodesSeeder extends Seeder
 {
     /**
-     * Category totals from convention planning sheet.
-     * Prefixes are unique and do not overlap Nigerian state codes.
-     * Two "Caterers" lines use distinct prefixes (CAT / CEB).
+     * Category totals (convention / non-state). Prefixes are unique vs Nigerian state codes.
      *
      * @var array<int, array{0: string, 1: string, 2: int}>
      */
     private const CATEGORIES = [
-        ['Statebox', 'STB', 200],
-        ['VIP', 'VIP', 365],
-        ['Convention Officials', 'COF', 1000],
-        ['Ushers', 'USH', 300],
-        ['Caterers', 'CAT', 25],
-        ['Medical', 'MED', 120],
-        ['Press', 'PRS', 200],
-        ['Caterers (additional)', 'CEB', 50],
-        ['Election support', 'ESU', 10],
-        ['Cleaning', 'CLN', 50],
-        ['Security', 'SEC', 100],
-        ['Venue planners', 'VNP', 100],
-        ['Secretariat', 'SCR', 100],
+        ['VVIP', 'VVP', 210],
+        ['VIP', 'VIP', 371],
+        ['International Observers', 'OBS', 20],
+        ['Domestic observers', 'DOM', 20],
+        ['INEC Officials', 'INE', 30],
+        ['Ushers', 'USH', 360],
+        ['Medical', 'MED', 130],
+        ['Press', 'PRS', 210],
+        ['Caterers', 'CAT', 60],
+        ['Election support', 'ESU', 60],
+        ['Cleaning', 'CLN', 60],
+        ['Venue planners', 'VNP', 110],
+        ['Rapparteurs/ documentation', 'RPD', 25],
+        ['Entertainment', 'ENT', 110],
+        ['Emergency Response', 'EMR', 60],
+        ['Secretariat', 'SCR', 110],
+        ['Security', 'SEC', 210],
+        ['Technical', 'TEC', 60],
+        ['Women and Youth', 'WMY', 210],
+        ['PWD', 'PWD', 30],
+        ['Support Groups', 'SPG', 210],
+        ['NCC Officials', 'NCC', 1010],
     ];
 
     public function run(): void
     {
-        if (DB::table('pincodes')->where('state_code', 'STB')->exists()) {
+        if (DB::table('pincodes')->where('state_code', 'VVP')->exists()) {
             return;
         }
 
@@ -45,9 +52,10 @@ class ConventionCategoryPincodesSeeder extends Seeder
         $now = now();
         $rows = [];
         foreach (self::CATEGORIES as [$name, $prefix, $count]) {
+            $pad = max(3, strlen((string) $count));
             for ($i = 1; $i <= $count; $i++) {
                 $rows[] = [
-                    'code' => sprintf('%s-%03d', $prefix, $i),
+                    'code' => sprintf('%s-%0'.$pad.'d', $prefix, $i),
                     'state_code' => $prefix,
                     'state_name' => $name,
                     'serial' => $i,

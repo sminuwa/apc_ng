@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 
 class PincodeApiController extends Controller
 {
+    /** Max pincodes per batch request (offline queue flush). */
+    private const PUSH_BATCH_MAX = 200;
+
     /**
      * Return full pincode details by code (GET query or POST body: pincode).
      *
@@ -35,7 +38,7 @@ class PincodeApiController extends Controller
     }
 
     /**
-     * Mark pincode as used. Body: pincode.
+     * Mark one pincode as used. Body: pincode.
      *
      * status: 0 on success or already used; 2 if not found.
      */
@@ -46,31 +49,83 @@ class PincodeApiController extends Controller
         ]);
 
         $code = $this->normalizePincode($validated['pincode']);
+        $result = $this->pushSingle($code);
 
+        $http = $result['status'] === Pincode::STATUS_INVALID ? 404 : 200;
+
+        return response()->json($result, $http);
+    }
+
+    /**
+     * Mark many pincodes as used (e.g. cached scans flushed when online).
+     * Body: { "pincodes": ["JIG-001", "VIP-002", ...] }
+     *
+     * HTTP 200 always; each item has status 0 / 1 / 2. Duplicates in the array are applied once (first wins).
+     */
+    public function pushBatch(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'pincodes' => ['required', 'array', 'min:1', 'max:'.self::PUSH_BATCH_MAX],
+            'pincodes.*' => ['required', 'string', 'max:32'],
+        ]);
+
+        set_time_limit(180);
+
+        $seen = [];
+        $results = [];
+
+        foreach ($validated['pincodes'] as $raw) {
+            $code = $this->normalizePincode($raw);
+            if (isset($seen[$code])) {
+                continue;
+            }
+            $seen[$code] = true;
+            $results[] = $this->pushSingle($code);
+        }
+
+        return response()->json([
+            'count' => count($results),
+            'results' => $results,
+        ]);
+    }
+
+    /**
+     * Apply push logic for one normalized code (shared by push and pushBatch).
+     *
+     * @return array<string, mixed>
+     */
+    private function pushSingle(string $code): array
+    {
         $pin = Pincode::query()->where('code', $code)->first();
 
         if ($pin === null) {
-            return response()->json([
+            return [
+                'pincode' => $code,
                 'status' => Pincode::STATUS_INVALID,
                 'message' => 'Pincode not found.',
-                'pincode' => $code,
-            ], 404);
+            ];
         }
 
         if ((int) $pin->status === Pincode::STATUS_USED) {
-            return response()->json([
-                'message' => 'Pincode was already used.',
-                ...$this->pincodePayload($pin),
-            ]);
+            return array_merge(
+                [
+                    'message' => 'Pincode was already used.',
+                    'pincode' => $code,
+                ],
+                $this->pincodePayload($pin)
+            );
         }
 
         $pin->status = Pincode::STATUS_USED;
         $pin->save();
 
-        return response()->json([
-            'message' => 'Pincode marked as used.',
-            ...$this->pincodePayload($pin->fresh()),
-        ]);
+        return array_merge(
+            [
+                'message' => 'Pincode marked as used.',
+                'pincode' => $code,
+            ],
+            $this->pincodePayload($pin->fresh())
+        );
     }
 
     private function normalizePincode(string $raw): string
